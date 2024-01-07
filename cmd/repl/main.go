@@ -6,6 +6,7 @@ import (
 	"os"
 
 	repl "github.com/roackb2/simple_db/internal/repl"
+	statement "github.com/roackb2/simple_db/internal/statement"
 )
 
 func main() {
@@ -24,5 +25,14 @@ func main() {
 			}
 		}
 
+		stmt := *statement.PrepareStatement(input)
+		switch stmt.PrepareRes {
+		case statement.PrepareSuccess:
+			statement.ExecuteStatement(stmt)
+			continue
+		case statement.PrepareFail:
+			fmt.Println("Unrecognized keyword at start of ", input)
+			continue
+		}
 	}
 }
