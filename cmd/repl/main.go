@@ -4,28 +4,25 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	// buffer_manager "github.com/roackb2/simple_db/internal/buffer"
+
+	repl "github.com/roackb2/simple_db/internal/repl"
 )
 
-func print_usage() {
-	fmt.Println("Simple DB 0.0.1")
-	fmt.Println("Type .exit to exit")
-}
-
-func print_prompt() {
-	fmt.Print("db > ")
-}
-
 func main() {
-	// buffer_manager.Allocate()
-	print_usage()
+	repl.PrintUsage()
 	for {
-		print_prompt()
+		repl.PrintPrompt()
 		reader := bufio.NewReader(os.Stdin)
-		text, _ := reader.ReadString('\n')
-		if text == ".exit\n" {
-			break
+		input, _ := reader.ReadString('\n')
+		if repl.IsMetaCommand(input) {
+			switch repl.HandleMetaCommand(input) {
+			case repl.CmdSuccess:
+				continue
+			case repl.CmdUnrecognized:
+				fmt.Println("Unrecognized command: ", input)
+				continue
+			}
 		}
-		fmt.Println(text)
+
 	}
 }
