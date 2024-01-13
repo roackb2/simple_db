@@ -2,11 +2,11 @@ package main
 
 import (
 	"bufio"
-	"fmt"
 	"os"
 
-	repl "github.com/roackb2/simple_db/internal/repl"
-	statement "github.com/roackb2/simple_db/internal/statement"
+	logger "github.com/roackb2/simple_db/internal/log"
+	"github.com/roackb2/simple_db/internal/parser"
+	"github.com/roackb2/simple_db/internal/repl"
 )
 
 func main() {
@@ -20,18 +20,18 @@ func main() {
 			case repl.CmdSuccess:
 				continue
 			case repl.CmdUnrecognized:
-				fmt.Println("Unrecognized command: ", input)
+				logger.Debug("Unrecognized command: ", input)
 				continue
 			}
 		}
 
-		stmt := *statement.PrepareStatement(input)
+		stmt := *parser.PrepareStatement(input)
 		switch stmt.PrepareRes {
-		case statement.PrepareSuccess:
-			statement.ExecuteStatement(stmt)
+		case parser.PrepareSuccess:
+			parser.ExecuteStatement(stmt)
 			continue
-		case statement.PrepareFail:
-			fmt.Println("Unrecognized keyword at start of ", input)
+		case parser.PrepareFail:
+			logger.Debug("Unrecognized keyword at start of ", input)
 			continue
 		}
 	}
