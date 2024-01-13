@@ -23,11 +23,6 @@ func NewParser(lex *Lexer) *Parser {
 	return parser
 }
 
-func (parser *Parser) PrintParser() {
-	logger.Debug("curToken: %+v\n", parser.curToken)
-	logger.Debug("peekToken: %+v\n", parser.peekToken)
-}
-
 func (parser *Parser) Errors() []string {
 	return parser.errors
 }
@@ -39,7 +34,7 @@ func (parser *Parser) nextToken() {
 }
 
 func (parser *Parser) peekError(t TokenType) {
-	msg := fmt.Sprintf("expected next token to be %s, got %s instead", string(t), parser.peekToken.Literal)
+	msg := fmt.Sprintf("expected next token to be %s, got %s instead", t, parser.peekToken.Literal)
 	parser.errors = append(parser.errors, msg)
 }
 
@@ -56,13 +51,16 @@ func (parser *Parser) expectPeek(tokenType TokenType) bool {
 
 func (parser *Parser) parseInsertStatement() *Statement {
 	insertStatement := &InsertStatement{}
+	// INTO
 	if !parser.expectPeek(INTO) {
 		return nil
 	}
+	// table name
 	if !parser.expectPeek(IDENTIFIER) {
 		return nil
 	}
 	insertStatement.TableName = parser.curToken.Literal
+	// column names
 	if !parser.expectPeek(OPEN_PARENTHESIS) {
 		return nil
 	}
@@ -70,7 +68,6 @@ func (parser *Parser) parseInsertStatement() *Statement {
 		return nil
 	}
 	insertStatement.Columns = append(insertStatement.Columns, parser.curToken.Literal)
-	logger.Debug("current token: %s, peek token type: %s", parser.curToken.Literal, parser.peekToken.Literal)
 	for parser.peekToken.Type == COMMA {
 		parser.nextToken()
 		parser.nextToken()
@@ -80,13 +77,15 @@ func (parser *Parser) parseInsertStatement() *Statement {
 	if !parser.expectPeek(CLOSE_PARENTHESIS) {
 		return nil
 	}
+	// VALUES
 	if !parser.expectPeek(VALUES) {
 		return nil
 	}
+	// column values
 	if !parser.expectPeek(OPEN_PARENTHESIS) {
 		return nil
 	}
-	if !parser.expectPeek(STRING) || !parser.expectPeek(NUMBER) {
+	if !parser.expectPeek(STRING) {
 		return nil
 	}
 	insertStatement.Values = append(insertStatement.Values, parser.curToken.Literal)

@@ -57,14 +57,6 @@ func (lex *Lexer) readChar() {
 	lex.readPosition++
 }
 
-func (lex *Lexer) readNumber() string {
-	position := lex.position
-	for isDigit(lex.ch) {
-		lex.readChar()
-	}
-	return lex.input[position:lex.position]
-}
-
 func (lex *Lexer) skipWhitespace() {
 	for lex.ch == ' ' || lex.ch == '\t' || lex.ch == '\n' || lex.ch == '\r' {
 		lex.readChar()
@@ -79,8 +71,29 @@ func (lex *Lexer) readIdentifier() string {
 	return lex.input[position:lex.position]
 }
 
+func (lex *Lexer) readNumber() string {
+	position := lex.position
+	for isDigit(lex.ch) {
+		lex.readChar()
+	}
+	return lex.input[position:lex.position]
+}
+
+func (lex *Lexer) readString() string {
+	position := lex.position + 1 // Start after the opening quote.
+	for {
+		lex.readChar()
+		if lex.ch == '\'' || lex.ch == 0 {
+			break
+		}
+	}
+	str := lex.input[position:lex.position] // Do not include the closing quote.
+	lex.readChar()                          // Move past the closing quote.
+	return str
+}
+
 func (lex *Lexer) readToken(tokenType TokenType, ch byte) Token {
-	tok := newToken(tokenType, ch)
+	tok := Token{Type: tokenType, Literal: string(ch)}
 	lex.readChar()
 	return tok
 }
@@ -96,12 +109,13 @@ func (lex *Lexer) nextToken() Token {
 		tok = lex.readToken(OPEN_PARENTHESIS, lex.ch)
 	case ')':
 		tok = lex.readToken(CLOSE_PARENTHESIS, lex.ch)
-	case '\'':
-		tok = lex.readToken(SINGLE_QUOTE, lex.ch)
 	case ',':
 		tok = lex.readToken(COMMA, lex.ch)
 	case 0:
 		tok = lex.readToken(EOF, byte(0))
+	case '\'':
+		tok.Literal = lex.readString()
+		tok.Type = STRING
 	default:
 		if isLetter(lex.ch) {
 			tok.Literal = lex.readIdentifier()

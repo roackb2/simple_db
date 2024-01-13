@@ -26,7 +26,3 @@ type Token struct {
 	Type    TokenType
 	Literal string
 }
-
-func newToken(tokenType TokenType, ch byte) Token {
-	return Token{Type: tokenType, Literal: string(ch)}
-}
