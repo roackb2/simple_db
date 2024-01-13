@@ -14,7 +14,9 @@ type Lexer struct {
 }
 
 func NewLexer(input string) *Lexer {
-	return &Lexer{input: input}
+	l := &Lexer{input: input}
+	l.readChar() // Initialize the first character
+	return l
 }
 
 func isLetter(ch byte) bool {
@@ -77,26 +79,29 @@ func (lex *Lexer) readIdentifier() string {
 	return lex.input[position:lex.position]
 }
 
+func (lex *Lexer) readToken(tokenType TokenType, ch byte) Token {
+	tok := newToken(tokenType, ch)
+	lex.readChar()
+	return tok
+}
+
 func (lex *Lexer) nextToken() Token {
 	var tok Token
 
-	lex.readChar()
-
 	lex.skipWhitespace()
 
-	logger.Debug("Reading token character", string(lex.ch))
+	logger.Debug("Reading token character %s\n", string(lex.ch))
 	switch lex.ch {
 	case '(':
-		tok = newToken(OPEN_PARENTHESIS, lex.ch)
+		tok = lex.readToken(OPEN_PARENTHESIS, lex.ch)
 	case ')':
-		tok = newToken(CLOSE_PARENTHESIS, lex.ch)
+		tok = lex.readToken(CLOSE_PARENTHESIS, lex.ch)
 	case '\'':
-		tok = newToken(SINGLE_QUOTE, lex.ch)
+		tok = lex.readToken(SINGLE_QUOTE, lex.ch)
 	case ',':
-		logger.Debug("Found comma")
-		tok = newToken(COMMA, lex.ch)
+		tok = lex.readToken(COMMA, lex.ch)
 	case 0:
-		tok = newToken(EOF, byte(0))
+		tok = lex.readToken(EOF, byte(0))
 	default:
 		if isLetter(lex.ch) {
 			tok.Literal = lex.readIdentifier()
@@ -105,7 +110,7 @@ func (lex *Lexer) nextToken() Token {
 			tok.Literal = lex.readNumber()
 			tok.Type = NUMBER
 		} else {
-			tok = newToken(ILLEGAL, lex.ch)
+			tok = lex.readToken(ILLEGAL, lex.ch)
 		}
 	}
 	logger.Debug("Parsed token '%s' is of type %s\n", tok.Literal, tok.Type)

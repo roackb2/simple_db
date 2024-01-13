@@ -70,12 +70,10 @@ func (parser *Parser) parseInsertStatement() *Statement {
 		return nil
 	}
 	insertStatement.Columns = append(insertStatement.Columns, parser.curToken.Literal)
-	fmt.Println("peek token type", parser.peekToken.Type)
+	logger.Debug("current token: %s, peek token type: %s", parser.curToken.Literal, parser.peekToken.Literal)
 	for parser.peekToken.Type == COMMA {
 		parser.nextToken()
-		fmt.Println("next token is comma", parser.curToken.Literal)
 		parser.nextToken()
-		fmt.Println("next token is identifier", parser.curToken.Literal)
 		insertStatement.Columns = append(insertStatement.Columns, parser.curToken.Literal)
 	}
 	insertStatement.Columns = append(insertStatement.Columns, parser.curToken.Literal)

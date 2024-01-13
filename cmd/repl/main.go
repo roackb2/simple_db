@@ -20,7 +20,7 @@ func main() {
 			case repl.CmdSuccess:
 				continue
 			case repl.CmdUnrecognized:
-				logger.Debug("Unrecognized command: ", input)
+				logger.Debug("Unrecognized command: %s", input)
 				continue
 			}
 		}
@@ -31,7 +31,7 @@ func main() {
 			parser.ExecuteStatement(stmt)
 			continue
 		case parser.PrepareFail:
-			logger.Debug("Unrecognized keyword at start of ", input)
+			logger.Debug("Unrecognized keyword at start of %s", input)
 			continue
 		}
 	}
