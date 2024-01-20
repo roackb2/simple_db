@@ -81,4 +81,72 @@ func (p *Page) readSlot(slotIndex int) (Slot, error) {
 	return Slot{Offset: offset, Length: length}, nil
 }
 
-// Other methods for deleting records, compacting the page, etc., would also be needed.
+func (p *Page) DeleteRecord(slotIndex int) error {
+	// Read the slot to get the record's offset and length
+	slot, err := p.readSlot(slotIndex)
+	if err != nil {
+		return err
+	}
+
+	// Check if the record is already deleted
+	if slot.Length == 0 {
+		return errors.New("record is already deleted")
+	}
+
+	// Mark the slot as deleted by setting the length to 0
+	slot.Length = 0
+	p.writeSlot(slot)
+
+	// p.compactPage()
+
+	return nil
+}
+
+func (p *Page) compactPage() {
+	newData := make([]byte, len(p.Data))
+	copy(newData, p.Data[:PageHeaderSize]) // Copy the header
+
+	newFreeSpacePointer := uint16(PageHeaderSize)
+	var newSlots []Slot
+
+	for _, slot := range p.readAllSlots() {
+		if slot.Length == 0 {
+			// Skip deleted records
+			continue
+		}
+
+		// Copy active record to new data slice
+		copy(newData[newFreeSpacePointer:], p.Data[slot.Offset:slot.Offset+uint16(slot.Length)])
+
+		// Create new slot with updated offset
+		newSlot := Slot{
+			Offset: newFreeSpacePointer,
+			Length: slot.Length,
+		}
+		newSlots = append(newSlots, newSlot)
+
+		// Update free space pointer
+		newFreeSpacePointer += uint16(slot.Length)
+	}
+
+	// Write new slots to the end of the newData slice
+	for i, slot := range newSlots {
+		slotPosition := len(newData) - (i+1)*SlotSize
+		binary.LittleEndian.PutUint16(newData[slotPosition:], slot.Offset)
+		binary.LittleEndian.PutUint32(newData[slotPosition+2:], slot.Length)
+	}
+
+	// Update the page's data slice and free space pointer
+	p.Data = newData
+	p.FreeSpacePointer = newFreeSpacePointer
+}
+
+func (p *Page) readAllSlots() []Slot {
+	// Helper function to read all slots from the slot directory
+	var slots []Slot
+	for slotIndex := 0; slotIndex < int(math.Ceil(float64(len(p.Data)-PageHeaderSize)/float64(SlotSize))); slotIndex++ {
+		slot, _ := p.readSlot(slotIndex) // Error handling can be improved here
+		slots = append(slots, slot)
+	}
+	return slots
+}
