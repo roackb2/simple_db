@@ -73,6 +73,18 @@ func (bp *BufferPool) FetchPage(pageID int64) (*Page, error) {
 	return pageData, nil
 }
 
+// GetBufferPage retrieves a buffered page by its page ID.
+func (bp *BufferPool) GetBufferPage(pageID int64) (*BufferPage, error) {
+	bp.mu.RLock()
+	defer bp.mu.RUnlock()
+
+	bufferPage, exists := bp.pool[pageID]
+	if !exists {
+		return nil, errors.New("page not found in buffer pool")
+	}
+	return bufferPage, nil
+}
+
 // FlushPage writes a page back to disk if it's dirty.
 func (bp *BufferPool) FlushPage(pageID int64) error {
 	bp.mu.Lock()
