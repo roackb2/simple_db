@@ -30,7 +30,8 @@ func (r *Record) GetField(index int) ([]byte, error) {
 func (r *Record) Serialize() []byte {
 	var buffer bytes.Buffer
 	for _, field := range r.Fields {
-		binary.Write(&buffer, binary.LittleEndian, int32(len(field)))
+		fieldSize := uint32(len(field))
+		binary.Write(&buffer, binary.LittleEndian, fieldSize)
 		buffer.Write(field)
 	}
 	return buffer.Bytes()
@@ -38,23 +39,20 @@ func (r *Record) Serialize() []byte {
 
 func DeserializeRecord(data []byte) (*Record, error) {
 	buffer := bytes.NewBuffer(data)
-	record := NewRecord()
+	var fields [][]byte
 
 	for buffer.Len() > 0 {
-		var length int32
-		if err := binary.Read(buffer, binary.LittleEndian, &length); err != nil {
+		var fieldSize uint32
+		if err := binary.Read(buffer, binary.LittleEndian, &fieldSize); err != nil {
 			return nil, err
 		}
-
-		field := make([]byte, length)
+		field := make([]byte, fieldSize)
 		if _, err := buffer.Read(field); err != nil {
 			return nil, err
 		}
-
-		record.AddField(field)
+		fields = append(fields, field)
 	}
-
-	return record, nil
+	return &Record{Fields: fields}, nil
 }
 
 func (r *Record) Size() int {
