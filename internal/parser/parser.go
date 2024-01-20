@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	logger "github.com/roackb2/simple_db/internal/log"
+	stmt "github.com/roackb2/simple_db/internal/statement"
 )
 
 type Parser struct {
@@ -49,8 +50,8 @@ func (parser *Parser) expectPeek(tokenType TokenType) bool {
 	}
 }
 
-func (parser *Parser) parseInsertStatement() *Statement {
-	insertStatement := &InsertStatement{}
+func (parser *Parser) parseInsertStatement() *stmt.Statement {
+	insertStatement := &stmt.InsertStatement{}
 	// INTO
 	if !parser.expectPeek(INTO) {
 		return nil
@@ -99,17 +100,17 @@ func (parser *Parser) parseInsertStatement() *Statement {
 	if !parser.expectPeek(CLOSE_PARENTHESIS) {
 		return nil
 	}
-	return &Statement{PrepareSuccess, StatementInsert, "", insertStatement, nil}
+	return &stmt.Statement{stmt.PrepareSuccess, stmt.StatementInsert, "", insertStatement, nil}
 }
 
-func (parser *Parser) parseSelectStatement() *Statement {
-	selectStmt := &SelectStatement{}
+func (parser *Parser) parseSelectStatement() *stmt.Statement {
+	selectStmt := &stmt.SelectStatement{}
 
 	// Logic to parse fields, table name, and WHERE clause
 
-	return &Statement{
-		PrepareRes:    PrepareSuccess,
-		StatementType: StatementSelect,
+	return &stmt.Statement{
+		PrepareRes:    stmt.PrepareSuccess,
+		StatementType: stmt.StatementSelect,
 		SelectStmt:    selectStmt,
 	}
 }
@@ -124,7 +125,7 @@ func PrintTokens(lexer *Lexer) {
 	}
 }
 
-func (parser *Parser) ParseStatement() *Statement {
+func (parser *Parser) ParseStatement() *stmt.Statement {
 	logger.Debug("Statement starts with: %s\n", parser.curToken.Type)
 	switch parser.curToken.Type {
 	case INSERT:
@@ -132,6 +133,6 @@ func (parser *Parser) ParseStatement() *Statement {
 	case SELECT:
 		return parser.parseSelectStatement()
 	default:
-		return &Statement{PrepareFail, StatementUnknown, "", nil, nil}
+		return &stmt.Statement{stmt.PrepareFail, stmt.StatementUnknown, "", nil, nil}
 	}
 }

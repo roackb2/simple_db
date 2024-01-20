@@ -193,3 +193,10 @@ func DeserializePage(buf []byte) (*Page, error) {
 
 	return p, nil
 }
+
+func (page *Page) hasEnoughSpaceFor(recordData []byte) bool {
+	// Logic to check if the page has enough space for the record.
+	// This will depend on the page format and how free space is tracked.
+	// Placeholder logic:
+	return len(page.Data)+len(recordData) <= PageSize
+}

@@ -106,6 +106,12 @@ func (bp *BufferPool) FlushPage(pageID int64) error {
 	return nil
 }
 
+func (bp *BufferPool) WriteRecordToPage(page *Page, recordData []byte) error {
+	// Append the record to the page data.
+	page.Data = append(page.Data, recordData...)
+	return nil
+}
+
 // writePageToDisk writes a given page to disk.
 func (bp *BufferPool) writePageToDisk(pageID int64, page *Page) error {
 	// Serialize the page data

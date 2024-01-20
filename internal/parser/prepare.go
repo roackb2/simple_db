@@ -2,9 +2,11 @@ package parser
 
 import (
 	"fmt"
+
+	stmt "github.com/roackb2/simple_db/internal/statement"
 )
 
-func PrepareStatement(input string) *Statement {
+func PrepareStatement(input string) *stmt.Statement {
 	fmt.Println("Preparing statement", input)
 	lexer := NewLexer(input)
 	parser := NewParser(lexer)
